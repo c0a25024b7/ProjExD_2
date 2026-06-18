@@ -3,6 +3,7 @@ import random
 import sys
 import time
 import pygame as pg
+from pygame.transform import rotozoom
 
 DELTA = {
     pg.K_UP: (0, -5),  # 上矢印キー
@@ -49,12 +50,30 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
     bb_accs = [a for a in range(1, 11)]
     return bb_imgs,bb_accs  
 
+def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
+    kk_img = pg.image.load("fig/3.png")
+    kk_img = pg.transform.flip(kk_img, True, False)
+    kk_img_flip = pg.transform.flip(kk_img, False,True)
+    kk_dict = {
+        ( 0, 0): rotozoom(kk_img,0,1),
+        (+5, 0): rotozoom(kk_img,0,1), # 右
+        (+5,-5): rotozoom(kk_img,45,1), # 右上
+        ( 0,-5): rotozoom(kk_img,90,1), # 上
+        (-5,-5): rotozoom(kk_img_flip,135,1), # 左上
+        (-5, 0): rotozoom(kk_img_flip,180,1), # 左
+        (-5,+5): rotozoom(kk_img_flip,225,1), # 左下
+        ( 0,+5): rotozoom(kk_img,270,1), # 下
+        (+5,+5): rotozoom(kk_img,315,1), #右下
+    }
+    return kk_dict
+
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load("fig/pg_bg.jpg")    
-    kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
+    kk_imgs = get_kk_imgs()
+    kk_img = kk_imgs[(0, 0)]
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
     bb_imgs, bb_accs = init_bb_imgs()
@@ -82,6 +101,10 @@ def main():
             if key_lst[key]:
                 sum_mv[0] += mv[0]  # 横方向の移動量
                 sum_mv[1] += mv[1]  # 縦方向の移動量
+        center = kk_rct.center
+        kk_img = kk_imgs[tuple(sum_mv)]
+        kk_rct = kk_img.get_rect()
+        kk_rct.center = center
         kk_rct.move_ip(sum_mv)
         if check_bound(kk_rct) != (True, True):
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1]) 
