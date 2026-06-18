@@ -1,5 +1,6 @@
 import os
 import random
+import math
 import sys
 import time
 import pygame as pg
@@ -67,6 +68,17 @@ def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     }
     return kk_dict
 
+def calc_orientation(org: pg.Rect, dst: pg.Rect, current_xy: tuple[float, float]) -> tuple[float, float]:
+    dx = dst.centerx - org.centerx
+    dy = dst.centery - org.centery
+    norm = math.sqrt(dx**2 + dy**2)
+    if norm < 300:
+        return current_xy
+    if norm == 0:
+        return current_xy
+    vx = dx / norm * math.sqrt(50)
+    vy = dy / norm * math.sqrt(50)
+    return vx, vy
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
@@ -114,6 +126,7 @@ def main():
         bb_rct.width = bb_img.get_rect().width
         bb_rct.height = bb_img.get_rect().height
         bb_rct.center = center
+        vx, vy = calc_orientation(bb_rct, kk_rct, (vx, vy))
         avx = vx*bb_accs[min(tmr//500, 9)]
         avy = vy*bb_accs[min(tmr//500, 9)]
         bb_rct.move_ip(avx, avy)
